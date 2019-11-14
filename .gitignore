@@ -15,4 +15,4 @@
 /config/jwt/*
 ###< lexik/jwt-authentication-bundle ###
 
-.idea/
+.idea
