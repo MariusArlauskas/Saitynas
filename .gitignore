@@ -12,7 +12,7 @@
 ###< symfony/web-server-bundle ###
 
 ###> lexik/jwt-authentication-bundle ###
-/config/jwt/
+/config/jwt/*
 ###< lexik/jwt-authentication-bundle ###
 
-/.idea/*
+.idea/
