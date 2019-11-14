@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Read {{ title }}{% endblock %}
+
+{% block body %}
+
+    <a href="{{ path('app_returnTo', {'slug': 'title' }) }}">Some link</a>
+    <h1>{{ title }} wowoooowowo</h1>
+
+{% endblock %}
