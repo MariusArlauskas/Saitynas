@@ -3,12 +3,24 @@
 #    controller: App\Controller\DefaultController::index
 
 api_login_check:
-      path: /api/login_check
-      methods: ['POST']
+  path: /api/login_check
+  methods: ['POST']
 
-refresh_token:
-  path: /api/token/refresh
-  controller: App\Controller\AuthController::refresh
+gesdinet_jwt_refresh_token:
+    path: /api/token/refresh
+    controller: gesdinet.jwtrefreshtoken::refresh
+
+pageNotFound:
+    path:  /{path}
+    defaults:
+      {
+        _controller: App\Controller\PageNotFoundController::pageNotFoundAction,
+        path: ''
+      }
+    requirements:
+        path: .*
+
+
 
 #register:
 #    path: /register
@@ -31,16 +43,6 @@ refresh_token:
 #genres:
 #  resource: App\Controller\Api\GenreController
 #  prefix: api
-
-pageNotFound:
-    path:  /{path}
-    defaults:
-      {
-        _controller: App\Controller\PageNotFoundController::pageNotFoundAction,
-        path: ''
-      }
-    requirements:
-        path: .*
 
 #api:
 #    prefix: /api

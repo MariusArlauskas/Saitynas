@@ -1,15 +1,27 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Marius
- * Date: 2019-11-15
- * Time: 12:08
- */
 
 namespace App\Listeners;
 
 
-class RequestListener
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\HttpKernel\KernelEvents;
+
+class RequestListener implements EventSubscriberInterface
 {
 
+    public function onKernelRequest(RequestEvent $event){
+        $request = $event->getRequest();
+
+        $request->attributes->set('refresh_token', $request->get('REFRESH_TOKEN'));
+    }
+
+    public static function getSubscribedEvents()
+    {
+        return [
+            KernelEvents::REQUEST => [
+                ['onKernelRequest']
+            ]
+        ];
+    }
 }
