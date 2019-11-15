@@ -17,7 +17,7 @@ class RefreshTokenListener implements EventSubscriberInterface{
     }
 
     public function setRefreshToken(AuthenticationSuccessEvent $event){
-        $refreshToken = $event->getData()['refreshToken'];
+        $refreshToken = $event->getData()['refresh_token'];
         $response = $event->getResponse();
 
         if ($refreshToken){
