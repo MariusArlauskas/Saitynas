@@ -4,7 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\Genre;
 use App\Entity\Movie;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,12 +14,13 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * Class MovieController
  * @package App\Controller
+ * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
  * @Route("/api/movies")
  */
 class MovieController extends AbstractController
 {
     /**
-     * @Route("/", name="movie_create", methods={"POST"})
+     * @Route("", name="movie_create", methods={"POST"})
      * @return JsonResponse
      */
     public function createMovieAction(Request $request)
@@ -69,7 +70,7 @@ class MovieController extends AbstractController
     }
 
     /**
-     * @Route("/", name="movie_show_list", methods={"GET"})
+     * @Route("", name="movie_show_list", methods={"GET"})
      * @return JsonResponse
      */
     public function getAllAction()

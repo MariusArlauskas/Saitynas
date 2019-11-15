@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class AuthController extends AbstractController
 {
     /**
-     * @Route("/auth", name="auth")
+     * @Route("/register user", name="auth")
      * @return JsonResponse
      */
     public function register(Request $request)

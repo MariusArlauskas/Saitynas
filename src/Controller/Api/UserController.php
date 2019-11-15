@@ -4,7 +4,7 @@ namespace App\Controller\Api;
 
 use App\Entity\User;
 use App\Entity\Movie;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +20,8 @@ class UserController extends AbstractController
 {
 
     /**
-     * @Route("/", name="user_create", methods={"POST"})
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
+     * @Route("", name="user_create", methods={"POST"})
      * @return JsonResponse
      */
     public function createUserAction(Request $request)
@@ -57,6 +58,7 @@ class UserController extends AbstractController
         $user->setUsername($username);
         $user->setPassword(password_hash($password, PASSWORD_DEFAULT));
         $user->setEmail($email);
+        $user->setRoles(['ROLE_USER']);
 
         // Get the Doctrine service and manager
         $em = $this->getDoctrine()->getManager();
@@ -71,15 +73,17 @@ class UserController extends AbstractController
     }
 
     /**
- * @Route("/", name="user_show_list", methods={"GET"})
- * @return JsonResponse
- */
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
+     * @Route("", name="user_show_list", methods={"GET"})
+     * @return JsonResponse
+     */
     public function getAllAction()
     {
         // Fetching all users
         $repository = $this->getDoctrine()->getRepository(User::class);
         $users = $repository->findAll();
 
+        // Assigning only data that we will return
         $newUsers = array();
         foreach ($users as $item) {
             array_push($newUsers,[
@@ -99,16 +103,14 @@ class UserController extends AbstractController
      */
     public function getOneAction($id)
     {
+        // Finding user
         $repository = $this->getDoctrine()->getRepository(User::class);
         $user = $repository->find($id);
-
         if (!$user) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Assigning only user valuees which we will return
         $data = [
             'id' => $user->getId(),
             'name' => $user->getUsername(),
@@ -125,22 +127,20 @@ class UserController extends AbstractController
      */
     public function getUserMoviesAction($id)
     {
+        // Getting user
         $repository = $this->getDoctrine()->getRepository(User::class);
         $user = $repository->find($id);
-
         if (!$user) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Getting users movies
         $movies = $user->getUserMovies();
-
         if (!isset($movies[0])){
             return new JsonResponse('No movies found for user id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Getting movie data to array
         $data = array(); $nr = 1;
         foreach ($movies as $item) {
             array_push($data, [
@@ -159,28 +159,23 @@ class UserController extends AbstractController
      */
     public function getUserOneMovieAction($id, $movieId)
     {
+        // Getting user
         $repository = $this->getDoctrine()->getRepository(User::class);
         $user = $repository->find($id);
-
         if (!$user) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Getting user movies and selecting needed movie
         $movies = $user->getUserMovies();
         $movie = $movies[--$movieId];
-
         if (!isset($movie)) {
             $movieId++;
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$movieId, Response::HTTP_NOT_FOUND);
         }
 
-        $data = $this->forward('App\Controller\MovieController::getOneAction', [
+        // Calling other controller to show a movie
+        $data = $this->forward('App\Controller\Api\MovieController::getOneAction', [
             'id' => $movie->getId(),
         ]);
 
@@ -193,16 +188,14 @@ class UserController extends AbstractController
      */
     public function deleteAction($id)
     {
+        // Getting user
         $entityManager = $this->getDoctrine()->getManager();
         $user = $entityManager->getRepository(User::class)->find($id);
-
         if (!$user) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Removing user
         $entityManager->remove($user);
         $entityManager->flush();
 
@@ -214,13 +207,10 @@ class UserController extends AbstractController
      */
     public function updateUserAction(Request $request, $id)
     {
-        // Checking if item exists
+        // Getting user
         $repository = $this->getDoctrine()->getRepository(User::class);
         $user = $repository->find($id);
         if (!$user) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No user found for id ' . $id, Response::HTTP_NOT_FOUND);
         }
 
@@ -232,6 +222,7 @@ class UserController extends AbstractController
 
         // Getting data from array
         $password = null; $confirm_password = null;
+
         // If new data is not set do not set it
         if (isset($parametersAsArray['username'])) {
             $username = htmlspecialchars($parametersAsArray['username']);
@@ -247,11 +238,13 @@ class UserController extends AbstractController
         }
 
         // Validation
+        // If username is already taken (user with another id has the same username)
         $isTaken = $repository->findByNameAndNotId($username, $id);
         if ($isTaken) {
             return new JsonResponse('Username ' . $username . ' is already taken.', Response::HTTP_BAD_REQUEST);
         }
         elseif (
+            // If all data is empty
             empty($username) &&
             empty($email) &&
             (empty($confirm_password) || empty($password))
@@ -270,6 +263,7 @@ class UserController extends AbstractController
         }elseif (isset($email)){
             $user->setEmail($email);
         }
+
         // Get the Doctrine service and manager
         $em = $this->getDoctrine()->getManager();
 
@@ -287,14 +281,12 @@ class UserController extends AbstractController
      */
     public function addUserMoviesAction($id, Request $request)
     {
+        // Getting user
         $repository = $this->getDoctrine()->getRepository(User::class);
         $user = $repository->find($id);
 
-        // If user not found
+        // If user was not found
         if (!$user) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
@@ -303,23 +295,21 @@ class UserController extends AbstractController
             $parametersAsArray = json_decode($content, true);
         }
 
-        // If movie not set in request
+        // If movie was not set in request
         if (isset($parametersAsArray['movieId']) && !empty($parametersAsArray['movieId'])) {
             $movieId = htmlspecialchars($parametersAsArray['movieId']);
         }else{
             return new JsonResponse('Bad data!', Response::HTTP_BAD_REQUEST);
         }
 
+        // Find movie
         $repository2 = $this->getDoctrine()->getRepository(Movie::class);
         $movie = $repository2->find($movieId);
-
         if (!$movie) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // If user already has this movie
         if ($user->getUserMovies()->contains($movie)){
             return new JsonResponse('User already has a movie id '.$movieId, Response::HTTP_NOT_FOUND);
         }
@@ -342,25 +332,20 @@ class UserController extends AbstractController
      */
     public function deleteUserMovieAction($id, $movieId)
     {
+        // Getting user
         $repository = $this->getDoctrine()->getRepository(User::class);
         $user = $repository->find($id);
 
         // If user not found
         if (!$user) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Getting users movies
         $movies = $user->getUserMovies();
         $movie = $movies[--$movieId];
-
         if (!isset($movie)) {
             $movieId++;
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$movieId, Response::HTTP_NOT_FOUND);
         }
 

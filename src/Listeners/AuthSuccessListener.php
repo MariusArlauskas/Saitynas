@@ -7,6 +7,8 @@ use Symfony\Component\HttpFoundation\Cookie;
 
 class AuthSuccessListener {
 
+//php bin/console gesdinet:jwt:clear 2015-08-08
+
     private $secure = false;
     private $tokenTtl;
 

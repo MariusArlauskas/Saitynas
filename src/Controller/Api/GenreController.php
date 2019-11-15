@@ -3,7 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\Genre;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,12 +13,13 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * Class GenreController
  * @package App\Controller
+ * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
  * @Route("/api/genres")
  */
 class GenreController extends AbstractController
 {
     /**
-     * @Route("/", name="genre_create", methods={"POST"})
+     * @Route("", name="genre_create", methods={"POST"})
      * @return JsonResponse
      */
     public function createGenreAction(Request $request)
@@ -59,7 +60,7 @@ class GenreController extends AbstractController
     }
 
     /**
-     * @Route("/", name="genre_show_list", methods={"GET"})
+     * @Route("", name="genre_show_list", methods={"GET"})
      * @return JsonResponse
      */
     public function getAllAction()
