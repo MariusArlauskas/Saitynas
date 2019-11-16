@@ -20,7 +20,7 @@ class UserController extends AbstractController
 {
 
     /**
-     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("", name="user_create", methods={"POST"})
      * @return JsonResponse
      */
@@ -98,6 +98,7 @@ class UserController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="user_show", methods={"GET"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
@@ -122,6 +123,7 @@ class UserController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}/movies", name="user_show_movies", methods={"GET"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
@@ -154,6 +156,7 @@ class UserController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}/movies/{movieId}", name="user_show_movie", methods={"GET"}, requirements={"id"="\d+", "movieId"="\d+"})
      * @return JsonResponse
      */
@@ -183,6 +186,7 @@ class UserController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="user_delete", methods={"DELETE"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
@@ -203,6 +207,7 @@ class UserController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="user_update", methods={"PUT"}, requirements={"id"="\d+"})
      */
     public function updateUserAction(Request $request, $id)
@@ -276,6 +281,7 @@ class UserController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}/movies", name="user_add_movie", methods={"POST"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
@@ -327,6 +333,7 @@ class UserController extends AbstractController
 
 
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}/movies/{movieId}", name="user_delete_movie", methods={"DELETE"}, requirements={"id"="\d+", "movieId"="\d+"})
      * @return JsonResponse
      */

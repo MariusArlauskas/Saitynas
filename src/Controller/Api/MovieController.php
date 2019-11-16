@@ -14,12 +14,12 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * Class MovieController
  * @package App\Controller
- * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
  * @Route("/api/movies")
  */
 class MovieController extends AbstractController
 {
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("", name="movie_create", methods={"POST"})
      * @return JsonResponse
      */
@@ -70,6 +70,7 @@ class MovieController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("", name="movie_show_list", methods={"GET"})
      * @return JsonResponse
      */
@@ -78,7 +79,7 @@ class MovieController extends AbstractController
         $repository = $this->getDoctrine()->getRepository(Movie::class);
         $movies = $repository->findAll();
 
-        // Adding genres to object and removing information overflow
+        // Adding genres to array
         $newMovies = array();
         foreach ($movies as $item) {
             array_push($newMovies,[
@@ -93,6 +94,7 @@ class MovieController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="movie_show", methods={"GET"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
@@ -100,11 +102,7 @@ class MovieController extends AbstractController
     {
         $repository = $this->getDoctrine()->getRepository(Movie::class);
         $movie = $repository->find($id);
-
         if (!$movie) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
@@ -121,27 +119,26 @@ class MovieController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}/genres", name="movie_show_genres", methods={"GET"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
     public function getMovieGenresAction($id)
     {
+        // Get movie
         $repository = $this->getDoctrine()->getRepository(Movie::class);
         $movie = $repository->find($id);
-
         if (!$movie) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
-            return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+            return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Get genres
         $genres = $movie->getMovieGenres();
-
         if (!isset($genres[0])){
             return new JsonResponse('No genres found for movie id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Add genre info to array
         $data = array(); $nr = 1;
         foreach ($genres as $item) {
             array_push($data, [
@@ -155,33 +152,29 @@ class MovieController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}/genres/{genreId}", name="movie_show_genre", methods={"GET"}, requirements={"id"="\d+", "genreId"="\d+"})
      * @return JsonResponse
      */
     public function getMovieOneGenreAction($id, $genreId)
     {
+        // Get movie
         $repository = $this->getDoctrine()->getRepository(Movie::class);
         $movie = $repository->find($id);
-
         if (!$movie) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Get genre
         $genres = $movie->getMovieGenres();
         $genre = $genres[--$genreId];
-
         if (!isset($genre)) {
             $genreId++;
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No genre found for id '.$genreId, Response::HTTP_NOT_FOUND);
         }
 
-        $data = $this->forward('App\Controller\GenreController::getOneAction', [
+        // Get genres data from GenreController
+        $data = $this->forward('App\Controller\Api\GenreController::getOneAction', [
             'id' => $genre->getId(),
         ]);
 
@@ -189,21 +182,20 @@ class MovieController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="movie_delete", methods={"DELETE"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
     public function deleteAction($id)
     {
+        // Get movie
         $entityManager = $this->getDoctrine()->getManager();
         $movie = $entityManager->getRepository(Movie::class)->find($id);
-
         if (!$movie) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Delete movie
         $entityManager->remove($movie);
         $entityManager->flush();
 
@@ -211,6 +203,7 @@ class MovieController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="movie_update", methods={"PUT"}, requirements={"id"="\d+"})
      */
     public function updateMovieAction(Request $request, $id)
@@ -219,19 +212,16 @@ class MovieController extends AbstractController
         $repository = $this->getDoctrine()->getRepository(Movie::class);
         $movie = $repository->find($id);
         if (!$movie) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No genre found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
-        // Assingning data from request and removing unnecessary symbols
+        // Assingning data from request
         $parametersAsArray = [];
         if ($content = $request->getContent()) {
             $parametersAsArray = json_decode($content, true);
         }
 
-        // Getting data from array
+        // Getting data from array and removing unnecessary symbols
         // If new data is not set do not set it
         if (isset($parametersAsArray['name'])) {
             $name = htmlspecialchars($parametersAsArray['name']);
@@ -261,7 +251,7 @@ class MovieController extends AbstractController
             return new JsonResponse("Inavlid data!", Response::HTTP_BAD_REQUEST);
         }
 
-        // If new data empty leave old one
+        // If new data is empty leave old one
         if (isset($name)){
             $movie->setName($name);
         }elseif (isset($author)){
@@ -284,22 +274,20 @@ class MovieController extends AbstractController
     }
 
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}/genres", name="movie_add_genre", methods={"POST"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
     public function addMovieGenreAction($id, Request $request)
     {
+        // Get movie
         $repository = $this->getDoctrine()->getRepository(Movie::class);
         $movie = $repository->find($id);
-
-        // If user not found
         if (!$movie) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Get dadta from request
         $parametersAsArray = [];
         if ($content = $request->getContent()) {
             $parametersAsArray = json_decode($content, true);
@@ -312,20 +300,19 @@ class MovieController extends AbstractController
             return new JsonResponse('Bad data!', Response::HTTP_BAD_REQUEST);
         }
 
+        // Get genre
         $repository2 = $this->getDoctrine()->getRepository(Genre::class);
         $genre = $repository2->find($genreId);
-
         if (!$genre) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // If a movie already has that genre
         if ($movie->getMovieGenres()->contains($genre)){
             return new JsonResponse('Movie already has a genre id '.$genreId, Response::HTTP_NOT_FOUND);
         }
 
+        // Add genre
         $movie->addMovieGenre($genre);
 
         // Get the Doctrine service and manager
@@ -339,30 +326,24 @@ class MovieController extends AbstractController
 
 
     /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}/genres/{genreId}", name="movie_delete_genre", methods={"DELETE"}, requirements={"id"="\d+", "genreId"="\d+"})
      * @return JsonResponse
      */
     public function deleteMovieGenreAction($id, $genreId)
     {
+        // Get movie
         $repository = $this->getDoctrine()->getRepository(Movie::class);
         $movie = $repository->find($id);
-
-        // If user not found
         if (!$movie) {
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
-            return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+            return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
         }
 
+        // Get genre
         $movies = $movie->getMovieGenres();
         $genre = $movies[--$genreId];
-
         if (!isset($genre)) {
             $genreId++;
-//            throw $this->createNotFoundException(
-//                'No genre found for id '.$id
-//            );
             return new JsonResponse('No movie found for id '.$genreId, Response::HTTP_NOT_FOUND);
         }
 
