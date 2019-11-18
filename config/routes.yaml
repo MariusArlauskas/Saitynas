@@ -32,18 +32,6 @@ pageNotFound:
 #    controller: App\Controller\AuthController::apii
 #    methods: ['POST']
 
-#movies:
-#  resource: App\Controller\Api\MovieController
-#  prefix: api
-#
-#users:
-#  resource: App\Controller\Api\UserController
-#  prefix: api
-#
-#genres:
-#  resource: App\Controller\Api\GenreController
-#  prefix: api
-
 #api:
 #    prefix: /api
 #    resource: '../src/Controller/Api'

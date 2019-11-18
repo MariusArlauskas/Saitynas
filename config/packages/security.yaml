@@ -31,26 +31,26 @@ security:
           stateless: true
           anonymous: true
 
-#        register:
-#            pattern:  ^/register
-#            stateless: true
-#            anonymous: true
-
-
-        api:
-            pattern:  ^/api
+        register:
+            pattern:  ^/register
             stateless: true
-            anonymous: false
+            anonymous: true
             guard:
                 authenticators:
                     - lexik_jwt_authentication.jwt_token_authenticator
 
-
-
-
-
+        api:
+            pattern:  ^/api
+            stateless: true
+            anonymous: true
+            guard:
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
         main:
             anonymous: true
+            guard:
+                authenticators:
+                    - lexik_jwt_authentication.jwt_token_authenticator
 #            anonymous: false
 #            stateless: true
 #            provider: app_user_provider
@@ -63,6 +63,8 @@ security:
 #            guard:
 #                authenticators:
 #                    - lexik_jwt_authentication.jwt_token_authenticator
+
+
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used

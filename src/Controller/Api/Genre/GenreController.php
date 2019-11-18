@@ -1,6 +1,12 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Marius
+ * Date: 18/11/2019
+ * Time: 16:01
+ */
 
-namespace App\Controller\Api;
+namespace App\Controller\Api\Genre;
 
 use App\Entity\Genre;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -22,24 +28,29 @@ class GenreController extends AbstractController
      * @Route("", name="genre_create", methods={"POST"})
      * @return JsonResponse
      */
-    public function createGenreAction(Request $request)
+    public function createAction(Request $request)
     {
         // Assingning data from request and removing unnecessary symbols
         $parametersAsArray = [];
         if ($content = $request->getContent()) {
             $parametersAsArray = json_decode($content, true);
         }
-        $name = htmlspecialchars($parametersAsArray['name']);
-        $description = htmlspecialchars($parametersAsArray['description']);
+
+        // Checking if none of the data is missing
+        if (isset($parametersAsArray['name']) &&
+            isset($parametersAsArray['description']))
+        {
+            $name = htmlspecialchars($parametersAsArray['name']);
+            $description = htmlspecialchars($parametersAsArray['description']);
+        }else{
+            return new JsonResponse("Missing data!", Response::HTTP_BAD_REQUEST);
+        }
 
         // Validation
         $repository = $this->getDoctrine()->getRepository(Genre::class);
         $genre = $repository->findBy(['name' => $name]);
         if ($genre) {
             return new JsonResponse('Name '.$name.' is already taken.', Response::HTTP_BAD_REQUEST);
-        }
-        elseif (empty($name) || empty($description)){
-            return new JsonResponse("Inavlid data!", Response::HTTP_BAD_REQUEST);
         }
 
         // Creating Movie object
@@ -60,8 +71,7 @@ class GenreController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
-     * @Route("", name="genre_show_list", methods={"GET"})
+     * @Route("", name="genre_show_all", methods={"GET"})
      * @return JsonResponse
      */
     public function getAllAction()
@@ -84,8 +94,7 @@ class GenreController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
-     * @Route("/{id}", name="genre_show", methods={"GET"}, requirements={"id"="\d+"})
+     * @Route("/{id}", name="genre_show_one", methods={"GET"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
     public function getOneAction($id)
@@ -109,96 +118,10 @@ class GenreController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
-     * @Route("/{id}/movies", name="genre_show_movies", methods={"GET"}, requirements={"id"="\d+"})
-     * @return JsonResponse
-     */
-    public function getGenreMoviesAction($id)
-    {
-        // Get genre
-        $repository = $this->getDoctrine()->getRepository(Genre::class);
-        $genre = $repository->find($id);
-        if (!$genre) {
-            return new JsonResponse('No genre found for id '.$id, Response::HTTP_NOT_FOUND);
-        }
-
-        // Get movies
-        $movies = $genre->getGenreMovies();
-        if (!isset($movies[0])){
-            return new JsonResponse('No movies found in genre id '.$id, Response::HTTP_NOT_FOUND);
-        }
-
-        // Assign data to array
-        $data = array(); $nr = 1;
-        foreach ($movies as $item) {
-            array_push($data, [
-                'nr' => $nr++,
-                'movie_id' => $item->getId(),
-                'likes_count' => $item->getMovieUsersCount(),
-                'name' => $item->getName(),
-                'genres' => $item->getMovieGenresString(),
-            ]);
-        }
-
-        return new JsonResponse($data);
-    }
-
-    /**
-     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
-     * @Route("/{id}/movies/{movieId}", name="genre_show_movie", methods={"GET"}, requirements={"id"="\d+", "movieId"="\d+"})
-     * @return JsonResponse
-     */
-    public function getMovieOneGenreAction($id, $movieId)
-    {
-        // Get genres
-        $repository = $this->getDoctrine()->getRepository(Genre::class);
-        $genre = $repository->find($id);
-        if (!$genre) {
-            return new JsonResponse('No genre found for id '.$id, Response::HTTP_NOT_FOUND);
-        }
-
-        // Get genre movie
-        $movies = $genre->getGenreMovies();
-        $movie = $movies[--$movieId];
-        if (!isset($movie)) {
-            $movieId++;
-            return new JsonResponse('No movie found for id '.$movieId, Response::HTTP_NOT_FOUND);
-        }
-
-        // Get movie data from MovieController
-        $data = $this->forward('App\Controller\MovieController::getOneAction', [
-            'id' => $movie->getId(),
-        ]);
-
-        return $data;
-    }
-
-    /**
-     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
-     * @Route("/{id}", name="genre_delete", methods={"DELETE"}, requirements={"id"="\d+"})
-     * @return JsonResponse
-     */
-    public function deleteAction($id)
-    {
-        // Get genre
-        $entityManager = $this->getDoctrine()->getManager();
-        $genre = $entityManager->getRepository(Genre::class)->find($id);
-        if (!$genre) {
-            return new JsonResponse('No genre found for id '.$id, Response::HTTP_NOT_FOUND);
-        }
-
-        // Remove genre
-        $entityManager->remove($genre);
-        $entityManager->flush();
-
-        return new JsonResponse('Deleted genre with id '.$id, Response::HTTP_OK);
-    }
-
-    /**
      * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="genre_update", methods={"PUT"}, requirements={"id"="\d+"})
      */
-    public function updateGenreAction(Request $request, $id)
+    public function updateAction(Request $request, $id)
     {
         // Getting genre
         $repository = $this->getDoctrine()->getRepository(Genre::class);
@@ -247,5 +170,26 @@ class GenreController extends AbstractController
 //        return $this->redirectToRoute('genre_show_list');
 
         return new JsonResponse('Updated genre with id '.$genre->getId(), Response::HTTP_OK);
+    }
+
+    /**
+     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
+     * @Route("/{id}", name="genre_delete", methods={"DELETE"}, requirements={"id"="\d+"})
+     * @return JsonResponse
+     */
+    public function deleteAction($id)
+    {
+        // Get genre
+        $entityManager = $this->getDoctrine()->getManager();
+        $genre = $entityManager->getRepository(Genre::class)->find($id);
+        if (!$genre) {
+            return new JsonResponse('No genre found for id '.$id, Response::HTTP_NOT_FOUND);
+        }
+
+        // Remove genre
+        $entityManager->remove($genre);
+        $entityManager->flush();
+
+        return new JsonResponse('Deleted genre with id '.$id, Response::HTTP_OK);
     }
 }
