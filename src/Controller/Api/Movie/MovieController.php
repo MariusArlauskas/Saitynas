@@ -152,10 +152,16 @@ class MovieController extends AbstractController
             $parametersAsArray = json_decode($content, true);
         }
 
-        // Getting data from array and removing unnecessary symbols
+        // Getting data from array and validating it
         // If new data is not set do not set it
         if (isset($parametersAsArray['name'])) {
             $name = htmlspecialchars($parametersAsArray['name']);
+
+            // If name is already taken
+            $isTaken = $repository->findByNameAndNotId($name,$id);
+            if ($isTaken) {
+                return new JsonResponse('Name '.$name.' is already taken.', Response::HTTP_BAD_REQUEST);
+            }
         }
         if (isset($parametersAsArray['author'])) {
             $author = htmlspecialchars(trim($parametersAsArray['author']));
@@ -168,12 +174,8 @@ class MovieController extends AbstractController
             $description = htmlspecialchars($parametersAsArray['description']);
         }
 
-        // Validation
-        $isTaken = $repository->findByNameAndNotId($name,$id);
-        if ($isTaken) {
-            return new JsonResponse('Name '.$name.' is already taken.', Response::HTTP_BAD_REQUEST);
-        }
-        elseif (
+        // If all data was empty
+        if (
             empty($name) &&
             empty($author) &&
             empty($description) &&

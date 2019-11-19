@@ -47,6 +47,7 @@ security:
                 authenticators:
                     - lexik_jwt_authentication.jwt_token_authenticator
         main:
+            stateless: true
             anonymous: true
             guard:
                 authenticators:

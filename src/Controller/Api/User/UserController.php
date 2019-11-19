@@ -109,17 +109,12 @@ class UserController extends AbstractController
      */
     public function getOneAction($id)
     {
-        if (!$this->isGranted("ROLE_ADMIN")){
-            // Setting current user
-            $user = $this->getUser();
-        }else{
-            // Finding user
-            $repository = $this->getDoctrine()->getRepository(User::class);
-            $user = $repository->find($id);
-            if (!$user) {
-                return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+        // Finding user
+        $repository = $this->getDoctrine()->getRepository(User::class);
+        $user = $repository->find($id);
+        if (!$user) {
+            return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
             }
-        }
 
         // Assigning only user valuees which we will return
         $data = [
@@ -133,16 +128,22 @@ class UserController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="user_update", methods={"PUT"}, requirements={"id"="\d+"})
      */
     public function updateAction(Request $request, $id)
     {
-        // Getting user
         $repository = $this->getDoctrine()->getRepository(User::class);
-        $user = $repository->find($id);
-        if (!$user) {
-            return new JsonResponse('No user found for id ' . $id, Response::HTTP_NOT_FOUND);
+        // User can only update his own account
+        if (!$this->isGranted("ROLE_ADMIN")){
+            // Setting current user
+            $user = $this->getUser();
+        }else{
+            // Getting user
+            $user = $repository->find($id);
+            if (!$user) {
+                return new JsonResponse('No user found for id ' . $id, Response::HTTP_NOT_FOUND);
+            }
         }
 
         // Assingning data from request and removing unnecessary symbols
@@ -157,33 +158,33 @@ class UserController extends AbstractController
         // If new data is not set do not set it
         if (isset($parametersAsArray['username'])) {
             $username = htmlspecialchars($parametersAsArray['username']);
+
+            // If username is already taken (user with another id has the same username)
+            $isTaken = $repository->findByNameAndNotId($username, $id);
+            if ($isTaken) {
+                return new JsonResponse('Username ' . $username . ' is already taken.', Response::HTTP_BAD_REQUEST);
+            }
         }
-        if (isset($parametersAsArray['password'])) {
+        if (isset($parametersAsArray['password']) && isset($parametersAsArray['confirm_password'])) {
             $password = htmlspecialchars(trim($parametersAsArray['password']));
-        }
-        if (isset($parametersAsArray['confirm_password'])) {
             $confirm_password = htmlspecialchars(trim($parametersAsArray['confirm_password']));
+
+            // If passwords dont match
+            if ($password != $confirm_password){
+                return new JsonResponse("Passwords do not match!", Response::HTTP_BAD_REQUEST);
+            }
         }
         if (isset($parametersAsArray['email'])) {
             $email = htmlspecialchars($parametersAsArray['email']);
         }
 
-        // Validation
-        // If username is already taken (user with another id has the same username)
-        $isTaken = $repository->findByNameAndNotId($username, $id);
-        if ($isTaken) {
-            return new JsonResponse('Username ' . $username . ' is already taken.', Response::HTTP_BAD_REQUEST);
-        }
-        elseif (
-            // If all data is empty
+        // If all dadta was empty
+        if (
             empty($username) &&
             empty($email) &&
             (empty($confirm_password) || empty($password))
         ) {
             return new JsonResponse("Inavlid data!", Response::HTTP_BAD_REQUEST);
-        }
-        elseif ($password != $confirm_password){
-            return new JsonResponse("Passwords do not match!", Response::HTTP_BAD_REQUEST);
         }
 
         // If new data was not set leave old one
@@ -203,7 +204,7 @@ class UserController extends AbstractController
 
 //        return $this->redirectToRoute('genre_show_list');
 
-        return new JsonResponse('Updated movie with id '.$user->getId(), Response::HTTP_OK);
+        return new JsonResponse('Updated user with id '.$user->getId(), Response::HTTP_OK);
     }
 
     /**
