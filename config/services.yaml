@@ -37,3 +37,7 @@ services:
     App\Listeners\JWTNotFoundListener:
             tags:
                 - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_not_found, method: onJWTNotFound, priority: 0 }
+
+    App\Listeners\JWTInvalid:
+            tags:
+                - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_invalid, method: onJWTInvalid, priority: 0 }

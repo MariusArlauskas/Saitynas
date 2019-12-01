@@ -14,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -29,6 +30,10 @@ class UserController extends AbstractController
      */
     public function createAction(Request $request)
     {
+        if ($this->isGranted("ROLE_USER")) {
+            throw new HttpException(Response::HTTP_FORBIDDEN, "Access denied!!");
+        }
+
         // Assingning data from request and removing unnecessary symbols
         $parametersAsArray = [];
         if ($content = $request->getContent()) {
@@ -114,7 +119,7 @@ class UserController extends AbstractController
         $user = $repository->find($id);
         if (!$user) {
             return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
-            }
+        }
 
         // Assigning only user valuees which we will return
         $data = [
@@ -136,8 +141,12 @@ class UserController extends AbstractController
         $repository = $this->getDoctrine()->getRepository(User::class);
         // User can only update his own account
         if (!$this->isGranted("ROLE_ADMIN")){
-            // Setting current user
+            // Setting current user if not admin
             $user = $this->getUser();
+
+            if ($user->getId() != $id) {
+                throw new HttpException(Response::HTTP_FORBIDDEN, "Access denied!!");
+            }
         }else{
             // Getting user
             $user = $repository->find($id);
@@ -150,6 +159,15 @@ class UserController extends AbstractController
         $parametersAsArray = [];
         if ($content = $request->getContent()) {
             $parametersAsArray = json_decode($content, true);
+        }
+
+        // If all dadta was empty
+        if (
+            empty($parametersAsArray['username']) &&
+            empty($parametersAsArray['email']) &&
+            (empty($parametersAsArray['confirm_password']) || empty($parametersAsArray['password']))
+        ) {
+            return new JsonResponse("Empty data!", Response::HTTP_BAD_REQUEST);
         }
 
         // Getting data from array
@@ -178,15 +196,6 @@ class UserController extends AbstractController
             $email = htmlspecialchars($parametersAsArray['email']);
         }
 
-        // If all dadta was empty
-        if (
-            empty($username) &&
-            empty($email) &&
-            (empty($confirm_password) || empty($password))
-        ) {
-            return new JsonResponse("Inavlid data!", Response::HTTP_BAD_REQUEST);
-        }
-
         // If new data was not set leave old one
         if (isset($username)){
             $user->setUsername($username);
@@ -204,27 +213,44 @@ class UserController extends AbstractController
 
 //        return $this->redirectToRoute('genre_show_list');
 
+        if ($user->getId() == $id) {
+            // Setting current user if not admin
+            return new JsonResponse('Profile updated', Response::HTTP_OK);
+        }
         return new JsonResponse('Updated user with id '.$user->getId(), Response::HTTP_OK);
     }
 
     /**
-     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}", name="user_delete", methods={"DELETE"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
     public function deleteAction($id)
     {
-        // Getting user
         $entityManager = $this->getDoctrine()->getManager();
-        $user = $entityManager->getRepository(User::class)->find($id);
-        if (!$user) {
-            return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+        // User can only delete his own account
+            if (!$this->isGranted("ROLE_ADMIN")){
+            // Setting current user if not admin
+            $user = $this->getUser();
+
+            if ($user->getId() != $id) {
+                throw new HttpException(Response::HTTP_FORBIDDEN, "Access denied!!");
+            }
+        }else{
+            // Getting user
+            $user = $entityManager->getRepository(User::class)->find($id);
+            if (!$user) {
+                return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+            }
         }
 
         // Removing user
         $entityManager->remove($user);
         $entityManager->flush();
 
+        if ($user->getId() == $id) {
+            return new JsonResponse('Your account was deleted!', Response::HTTP_OK);
+        }
         return new JsonResponse('Deleted user with id '.$id, Response::HTTP_OK);
     }
 }

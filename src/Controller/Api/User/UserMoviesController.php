@@ -15,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -29,12 +30,16 @@ class UserMoviesController extends AbstractController
      * @Route("/{id}/movies", name="user_add_one_movie", methods={"POST"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
-    public function addOneAction($id, Request $request)
+    public function addAction($id, Request $request)
     {
         // Get current user if not admin
         if (!$this->isGranted("ROLE_ADMIN")){
             // Setting current user
             $user = $this->getUser();
+
+            if ($user->getId() != $id) {
+                throw new HttpException(Response::HTTP_FORBIDDEN, "Access denied!!");
+            }
         }else{
             // Finding user
             $repository = $this->getDoctrine()->getRepository(User::class);
@@ -61,7 +66,7 @@ class UserMoviesController extends AbstractController
         $repository2 = $this->getDoctrine()->getRepository(Movie::class);
         $movie = $repository2->find($movieId);
         if (!$movie) {
-            return new JsonResponse('No movie found for id '.$id, Response::HTTP_NOT_FOUND);
+            return new JsonResponse('No movie found for id '. $movieId, Response::HTTP_NOT_FOUND);
         }
 
         // If user already has this movie
@@ -78,26 +83,43 @@ class UserMoviesController extends AbstractController
         // Save user
         $em->flush();
 
+        if ($user->getId() == $id){
+            // Setting current user
+            return new JsonResponse('Added movie id ' . $movieId, Response::HTTP_OK);
+        }
         return new JsonResponse('Added movie id ' . $movieId . ' to user id '.$id, Response::HTTP_OK);
     }
 
     /**
-     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}/movies", name="user_show_movies", methods={"GET"}, requirements={"id"="\d+"})
      * @return JsonResponse
      */
     public function getAllAction($id)
     {
-        // Getting user
-        $repository = $this->getDoctrine()->getRepository(User::class);
-        $user = $repository->find($id);
-        if (!$user) {
-            return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+        // Get current user if not admin
+        if (!$this->isGranted("ROLE_ADMIN")){
+            // Setting current user
+            $user = $this->getUser();
+
+            if ($user->getId() != $id) {
+                throw new HttpException(Response::HTTP_FORBIDDEN, "Access denied!!");
+            }
+        }else{
+            // Getting user
+            $repository = $this->getDoctrine()->getRepository(User::class);
+            $user = $repository->find($id);
+            if (!$user) {
+                return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+            }
         }
 
         // Getting users movies
         $movies = $user->getUserMovies();
         if (!isset($movies[0])){
+            if ($user->getId() == $id){
+                return new JsonResponse('You have no movies in your list', Response::HTTP_NOT_FOUND);
+            }
             return new JsonResponse('No movies found for user id '.$id, Response::HTTP_NOT_FOUND);
         }
 
@@ -115,18 +137,29 @@ class UserMoviesController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}/movies/{movieId}", name="user_show_movie", methods={"GET"}, requirements={"id"="\d+", "movieId"="\d+"})
      * @return JsonResponse
      */
     public function getOneAction($id, $movieId)
     {
-        // Getting user
-        $repository = $this->getDoctrine()->getRepository(User::class);
-        $user = $repository->find($id);
-        if (!$user) {
-            return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+        // Get current user if not admin
+        if (!$this->isGranted("ROLE_ADMIN")){
+            // Setting current user
+            $user = $this->getUser();
+
+            if ($user->getId() != $id) {
+                throw new HttpException(Response::HTTP_FORBIDDEN, "Access denied!!");
+            }
+        }else{
+            // Getting user
+            $repository = $this->getDoctrine()->getRepository(User::class);
+            $user = $repository->find($id);
+            if (!$user) {
+                return new JsonResponse('No user found for id '.$id, Response::HTTP_NOT_FOUND);
+            }
         }
+
 
         // Getting user movies and selecting needed movie
         $movies = $user->getUserMovies();
@@ -145,7 +178,7 @@ class UserMoviesController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_ADMIN", statusCode=403, message="Access denied!!")
+     * @IsGranted("ROLE_USER", statusCode=403, message="Access denied!!")
      * @Route("/{id}/movies/{movieId}", name="user_delete_one_movie", methods={"DELETE"}, requirements={"id"="\d+", "movieId"="\d+"})
      * @return JsonResponse
      */
@@ -155,6 +188,10 @@ class UserMoviesController extends AbstractController
         if (!$this->isGranted("ROLE_ADMIN")){
             // Setting current user
             $user = $this->getUser();
+
+            if ($user->getId() != $id) {
+                throw new HttpException(Response::HTTP_FORBIDDEN, "Access denied!!");
+            }
         }else{
             // Getting user
             $repository = $this->getDoctrine()->getRepository(User::class);
@@ -181,6 +218,10 @@ class UserMoviesController extends AbstractController
         $em->flush();
 
         $movieId++;
-        return new JsonResponse('Deleted movie nr ' . $movieId . ' (in users list) from user id '.$id, Response::HTTP_OK);
+        if ($user->getId() == $id) {
+            // Setting current user
+            return new JsonResponse('Removed movie nr ' . $movieId, Response::HTTP_OK);
+        }
+        return new JsonResponse('Removed movie nr ' . $movieId . ' from user id '.$id, Response::HTTP_OK);
     }
 }

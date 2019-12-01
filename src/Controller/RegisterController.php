@@ -10,12 +10,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class RegisterController extends AbstractController
 {
     /**
-     * @Route("/register", name="registration")
+     * @Route("/register", name="user_registration")
      * @return JsonResponse
      */
     public function register(Request $request)
     {
-        $data = $this->forward('App\Controller\Api\User\UserController::createUserAction', [
+        $data = $this->forward('App\Controller\Api\User\UserController::createAction', [
             'request' => $request,
         ]);
 

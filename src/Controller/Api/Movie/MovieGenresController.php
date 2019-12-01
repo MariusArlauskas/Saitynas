@@ -159,7 +159,7 @@ class MovieGenresController extends AbstractController
         $em->flush();
 
         $genreId++;
-        return new JsonResponse('Deleted movie nr ' . $genreId . ' (in users list) from user id '.$id, Response::HTTP_OK);
+        return new JsonResponse('Removed genre nr ' . $genreId . ' from movie id '.$id, Response::HTTP_OK);
     }
 
     /**
