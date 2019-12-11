@@ -1,16 +1,21 @@
 <template>
   <v-app>
-    <Login/>
+    <Todo />
   </v-app>
 </template>
 
 <script>
-import Login from './components/Auth/Login'
-
+// import Login from "./components/Auth/Login";
+// import Signup from "./components/Auth/Signup";
+import Todo from "./components/Todo";
 export default {
-  name: 'app',
+  name: "App",
   components: {
-    Login
-  }
-}
+    Todo
+  },
+
+  data: () => ({
+    //
+  })
+};
 </script>
