@@ -18,7 +18,7 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * Class ProfileController
  * @package App\Controller
- * @Route("/profile")
+ * @Route("/api/profile")
  */
 class ProfileController extends AbstractController
 {

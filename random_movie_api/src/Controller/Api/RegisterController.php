@@ -7,6 +7,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * Class RegisterController
+ * @package App\Controller\Api
+ * @Route("/api")
+ */
 class RegisterController extends AbstractController
 {
     /**

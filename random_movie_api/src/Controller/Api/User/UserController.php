@@ -42,12 +42,10 @@ class UserController extends AbstractController
         // Check if none of the data is missing
         if (isset($parametersAsArray['username']) &&
             isset($parametersAsArray['password']) &&
-            isset($parametersAsArray['confirm_password']) &&
             isset($parametersAsArray['email']))
         {
             $username = htmlspecialchars($parametersAsArray['username']);
             $password = htmlspecialchars(trim($parametersAsArray['password']));
-            $confirm_password = htmlspecialchars(trim($parametersAsArray['confirm_password']));
             $email = htmlspecialchars($parametersAsArray['email']);
         }else{
             return new JsonResponse("Missing data!", Response::HTTP_BAD_REQUEST);
@@ -58,9 +56,6 @@ class UserController extends AbstractController
         $user = $repository->findBy(['username' => $username]);
         if ($user) {
             return new JsonResponse('Username '.$username.' is already taken.', Response::HTTP_BAD_REQUEST);
-        }
-        elseif ($password != $confirm_password){
-            return new JsonResponse("Passwords don't match!", Response::HTTP_BAD_REQUEST);
         }
 
         // Creating user object
@@ -100,7 +95,7 @@ class UserController extends AbstractController
                 'id' => $item->getId(),
                 'username' => $item->getUsername(),
                 'email' => $item->getEmail(),
-                'favoritesCount' => $item->getUserMoviesCount(),
+                'favorites_count' => $item->getUserMoviesCount(),
             ]);
         }
 
@@ -163,6 +158,7 @@ class UserController extends AbstractController
 
         // If all dadta was empty
         if (
+            empty($parametersAsArray['background']) &&
             empty($parametersAsArray['username']) &&
             empty($parametersAsArray['email']) &&
             (empty($parametersAsArray['confirm_password']) || empty($parametersAsArray['password']))
@@ -195,14 +191,22 @@ class UserController extends AbstractController
         if (isset($parametersAsArray['email'])) {
             $email = htmlspecialchars($parametersAsArray['email']);
         }
+        if (isset($parametersAsArray['background'])) {
+            $bg = htmlspecialchars($parametersAsArray['background']);
+        }
 
         // If new data was not set leave old one
         if (isset($username)){
             $user->setUsername($username);
-        }elseif (isset($password)){
+        }
+        if (isset($password)){
             $user->setPassword(password_hash($password, PASSWORD_DEFAULT));
-        }elseif (isset($email)){
+        }
+        if (isset($email)){
             $user->setEmail($email);
+        }
+        if (isset($email)){
+            $user->setBackground($bg);
         }
 
         // Get the Doctrine service and manager

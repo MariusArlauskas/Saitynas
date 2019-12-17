@@ -50,7 +50,7 @@ class MovieController extends AbstractController
             $release_date = new \DateTime(
                 htmlspecialchars(trim($parametersAsArray['release_date'])));
             $description = htmlspecialchars($parametersAsArray['description']);
-            $genreId = htmlspecialchars($parametersAsArray['genreId']);
+            $genreId = $parametersAsArray['genreId'];
         }else{
             return new JsonResponse("Missing data!", Response::HTTP_BAD_REQUEST);
         }
@@ -83,7 +83,7 @@ class MovieController extends AbstractController
         // Save movie
         $em->flush();
 
-        return new JsonResponse('Saved new movie with id '.$movie->getId(), Response::HTTP_OK);
+        return new JsonResponse('Saved new movie with id '.$movie->getId(), Response::HTTP_CREATED);
     }
 
     /**
@@ -102,7 +102,10 @@ class MovieController extends AbstractController
                 'id' => $item->getId(),
                 'likes_count' => $item->getMovieUsersCount(),
                 'name' => $item->getName(),
-                'genres' => $item->getMovieGenresString(),
+                'release_date' => $item->getReleaseDate()->format("Y-m-d"),
+                'genres' => $item->getMovieGenres(),
+                'author' => $item->getAuthor(),
+                'description' => $item->getDescription()
             ]);
         }
 
@@ -185,17 +188,18 @@ class MovieController extends AbstractController
         }
 
         // If new data is empty leave old one
-        if (isset($name)){
+        if (!empty($name)){
             $movie->setName($name);
-        }elseif (isset($author)){
+        }
+        if (!empty($author)){
             $movie->setAuthor($author);
-        }elseif (isset($release_date)){
+        }
+        if (!empty($release_date)){
             $movie->setReleaseDate($release_date);
-        }elseif (isset($description)){
+        }
+        if (!empty($description)){
             $movie->setDescription($description);
         }
-
-        // TODO - update movie genres
 
         // Get the Doctrine service and manager
         $em = $this->getDoctrine()->getManager();
@@ -234,9 +238,8 @@ class MovieController extends AbstractController
      * @param $movie Movie
      */
     private function addGenres($genres, $movie){
-        $ids = explode(", ", $genres);
         $repository = $this->getDoctrine()->getRepository(Genre::class);
-        foreach ($ids as $id) {
+        foreach ($genres as $id) {
             // Get genre
             $genre = $repository->find($id);
             if (!$genre) {

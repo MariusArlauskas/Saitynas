@@ -10,6 +10,7 @@ namespace App\Controller\Api\Movie;
 
 use App\Entity\Genre;
 use App\Entity\Movie;
+use Doctrine\Common\Collections\Collection;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -53,7 +54,7 @@ class MovieGenresController extends AbstractController
         }
 
         try {
-            $this->addGenres($genreId, $movie);
+            $genre = $this->addGenres($genreId, $movie);
         } catch (BadRequestHttpException $e) {
             return new JsonResponse($e->getMessage(), Response::HTTP_BAD_REQUEST);
         }
@@ -64,7 +65,13 @@ class MovieGenresController extends AbstractController
         // Save user
         $em->flush();
 
-        return new JsonResponse('Added genre id ' . $genreId . ' to movie id '.$id, Response::HTTP_OK);
+        $data = [
+            'genre_id' => $genre->getId(),
+            'name' => $genre->getName(),
+            'description' => $genre->getDescription()
+        ];
+
+        return new JsonResponse($data);
     }
 
     /**
@@ -93,6 +100,7 @@ class MovieGenresController extends AbstractController
                 'nr' => $nr++,
                 'genre_id' => $item->getId(),
                 'name' => $item->getName(),
+                'description' => $item->getDescription(),
             ]);
         }
 
@@ -144,10 +152,14 @@ class MovieGenresController extends AbstractController
 
         // Get genre
         $movies = $movie->getMovieGenres();
-        $genre = $movies[--$genreId];
+        foreach ($movies as $item) {
+            if ($item->getId() == $genreId){
+                $genre = $item;
+            }
+        }
         if (!isset($genre)) {
-            $genreId++;
-            return new JsonResponse('No movie found for id '.$genreId, Response::HTTP_NOT_FOUND);
+            $genreId;
+            return new JsonResponse('No genre found for id '.$genreId, Response::HTTP_NOT_FOUND);
         }
 
         $movie->removeMovieGenre($genre);
@@ -165,10 +177,12 @@ class MovieGenresController extends AbstractController
     /**
      * @param $genres string
      * @param $movie Movie
+     * @return Genre
      */
     private function addGenres($genres, $movie){
         $ids = explode(", ", $genres);
         $repository = $this->getDoctrine()->getRepository(Genre::class);
+        $genre = new Genre();
         foreach ($ids as $id) {
             // Get genre
             $genre = $repository->find($id);
@@ -184,5 +198,6 @@ class MovieGenresController extends AbstractController
             // Add genre
             $movie->addMovieGenre($genre);
         }
+        return $genre;
     }
 }
