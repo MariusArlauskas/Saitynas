@@ -119,6 +119,7 @@ export default {
           this.$router.push({
             name: "movieGenres",
             params:{
+              type: "movies",
               id: this.currentMovie['id']
             }
           });
@@ -131,6 +132,7 @@ export default {
         this.$router.push({
           name: "movieGenres",
           params: {
+            type: "movies",
             id: this.$route.params.id
           }
         });

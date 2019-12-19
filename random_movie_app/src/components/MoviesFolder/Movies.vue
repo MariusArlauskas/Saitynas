@@ -2,7 +2,7 @@
   <v-navigation-drawer permanent style="width: 100%; height: 97%">
     <v-content style="height: 100%; overflow-y: hidden">
       <v-list>
-        <v-list-item color="blue" @click.prevent="openNewMovieForm()" v-if="!isOpen()">
+        <v-list-item v-if="isOpen" color="blue" @click.prevent="openNewMovieForm()">
           <v-list-item-content>New Movie</v-list-item-content>
 
           <v-list-item-action class="mt-0 mb-0">
@@ -17,7 +17,7 @@
         </v-list-item>
       </v-list>
       <v-divider></v-divider>
-      <v-list v-if="!openNewMovieFormValue" style="height: calc(100% - 128px); overflow-y: scroll">
+      <v-list v-if="!openNewMovieFormValue" style="height: 87.3%; overflow-y: scroll">
         <v-list-item
           :to="{ name: 'movieGenres', params: { id: movie.id } }"
           v-for="(movie, key) in MOVIES"
@@ -52,7 +52,7 @@ export default {
   components: { NewMovie },
   data: () => ({}),
   computed: {
-    ...mapGetters(["DISPLAY_SEARCH_MOVIE", "MOVIES"]),
+    ...mapGetters(["MOVIES"]),
     openNewMovieFormValue: {
       get() {
         return this.$store.getters.NEW_MOVIE_FORM;
@@ -63,14 +63,7 @@ export default {
     }
   },
   methods: {
-    toggleSearchMovies() {
-      this.$store.commit(
-        "SET_DISPLAY_SEARCH_MOVIE",
-        !this.DISPLAY_SEARCH_MOVIE
-      );
-    },
     openNewMovieForm() {
-      this.$store.getters.GET_LISTS;
       this.$store.commit("SET_NEW_MOVIE_FORM", true);
     },
     isOpen() {

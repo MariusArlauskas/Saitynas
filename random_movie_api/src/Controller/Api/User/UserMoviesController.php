@@ -130,6 +130,9 @@ class UserMoviesController extends AbstractController
                 'nr' => $nr++,
                 'movie_id' => $item->getId(),
                 'name' => $item->getName(),
+                'author' => $item->getAuthor(),
+                'release_date' => $item->getReleaseDate()->format('Y-m-d'),
+                'description' => $item->getDescription(),
             ]);
         }
 
@@ -203,9 +206,14 @@ class UserMoviesController extends AbstractController
 
         // Getting users movies
         $movies = $user->getUserMovies();
-        $movie = $movies[--$movieId];
+        foreach ($movies as $item) {
+            if ($item->getId() == $movieId){
+                $movie = $item;
+            }
+        };
+
         if (!isset($movie)) {
-            $movieId++;
+            $movieId;
             return new JsonResponse('No movie found for id '.$movieId, Response::HTTP_NOT_FOUND);
         }
 

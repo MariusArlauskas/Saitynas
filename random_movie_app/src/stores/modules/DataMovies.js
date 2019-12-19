@@ -8,11 +8,6 @@ export default {
         MOVIES: state => {
             return state.movies;
         },
-        MOVIE_TITLE: state => index => {
-            if (index) {
-                return state.movies.find(movie => movie.id === index)["name"];
-            }
-        },
         MOVIE: state => index => {
             if (index) {
                 return state.movies.find(movie => movie.id === index);
@@ -59,15 +54,9 @@ export default {
             return new Promise((resolve, reject) => {
                 axios.post(`movies`, payload)
                     .then(({ data, status }) => {
-                        let object = {
-                            name: payload["name"],
-                            likes_count: '0',
-                            genres: [],
-                            id: data.split(" ")[data.split(" ").length - 1]
-                        }
-                        commit("ADD_MOVIE", object)
-                        if (status === 201) {
-                            resolve({ object, status })
+                        commit("ADD_MOVIE", data)
+                        if (status === 200) {
+                            resolve({ data, status })
                         }
                     })
                     .catch(error => {
@@ -103,7 +92,7 @@ export default {
                     })
             })
         },
-        GET_GENRES: async ({ commit }, payload) => {
+        GET_MOVIE_GENRES: async ({ commit }, payload) => {
             try {
                 let { data } = await axios.get(`movies/${payload}/genres`);
                 commit("SET_GENRES", {
@@ -114,7 +103,7 @@ export default {
                 console.log("No genres!")
             }
         },
-        ADD_GENRE: async ({ commit }, { movieId, genreToAdd }) => {
+        ADD_GENRE: ({ commit }, { movieId, genreToAdd }) => {
             return new Promise((resolve, reject) => {
                 axios.post(`movies/${movieId}/genres`, {
                     genreId: genreToAdd
@@ -129,18 +118,14 @@ export default {
                         }
                     })
                     .catch(error => {
+                        commit("SET_NOTIFICATION", {
+                            display: true,
+                            text: "Movie already has this genre!",
+                            alertClass: "red"
+                        })
                         reject(error);
                     })
             })
-
-
-
-
-
-            // await axios.post(`movies/${movieId}/genres`, {
-            //     genreId: genreToAdd
-            // });
-            // if (commit && (true == false)) { return }
         },
         REMOVE_MOVIE_GENRE: async ({ commit }, { movieId, genreId }) => {
             return new Promise((resolve, reject) => {

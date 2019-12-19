@@ -96,6 +96,7 @@ class UserController extends AbstractController
                 'username' => $item->getUsername(),
                 'email' => $item->getEmail(),
                 'favorites_count' => $item->getUserMoviesCount(),
+                'movies' => $item->getUserMovies()
             ]);
         }
 
@@ -196,16 +197,16 @@ class UserController extends AbstractController
         }
 
         // If new data was not set leave old one
-        if (isset($username)){
+        if (!empty($username)){
             $user->setUsername($username);
         }
-        if (isset($password)){
+        if (!empty($password)){
             $user->setPassword(password_hash($password, PASSWORD_DEFAULT));
         }
-        if (isset($email)){
+        if (!empty($email)){
             $user->setEmail($email);
         }
-        if (isset($email)){
+        if (!empty($email)){
             $user->setBackground($bg);
         }
 

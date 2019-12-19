@@ -2,12 +2,12 @@
   <div style="height: 100%">
     <v-card style="height: 100%; overflow: hidden">
       <v-toolbar color="blue" dark>
-        <v-toolbar-title>{{ movieTitle }}</v-toolbar-title>
+        <v-toolbar-title>{{ currentMovie["name"] }}</v-toolbar-title>
       </v-toolbar>
 
       <v-container style="height: 40%" class="ml-5 mr-5">
         <v-row>
-          <v-col cols="9">
+          <v-col cols="8">
             <v-row>
               <v-content class="font-weight-black">{{ currentMovie["name"] }}</v-content>
             </v-row>
@@ -20,7 +20,7 @@
               <v-icon>edit</v-icon>
             </v-btn>
           </v-col>
-          <v-col>
+          <v-col cols="1">
             <v-btn @click.prevent="deleteMovie" cols="1" icon color="pink">
               <v-icon>delete</v-icon>
             </v-btn>
@@ -30,8 +30,9 @@
           style="width: 98%; max-height: 77%; height: 77%; overflow-y: scroll"
         >{{ currentMovie["description"] }}</v-row>
       </v-container>
+      <v-content class="pl-5 title">Genre list</v-content>
       <v-divider></v-divider>
-      <v-list two-line style="height: calc(59% - 128px); overflow-y: scroll">
+      <v-list two-line style="max-height: 41%; height: 41%; overflow-y: scroll">
         <template v-for="(movieGenre, key) in GENRES">
           <MovieGenre v-bind:key="key" :movieGenre="movieGenre" :index="key" />
         </template>
@@ -73,18 +74,15 @@ export default {
             display: true,
             text: "Movie has been removed!",
             alertClass: "warning"
-          })
+          });
           this.$store.dispatch("GET_MOVIES");
           this.$router.push({
-            path: "../"
+            name: "todo"
           });
-        })
+        });
     }
   },
   computed: {
-    movieTitle() {
-      return this.$store.getters.MOVIE_TITLE(this.$route.params.id);
-    },
     currentMovie() {
       return this.$store.getters.MOVIE(this.$route.params.id);
     },
@@ -93,7 +91,7 @@ export default {
     }
   },
   async mounted() {
-    await this.$store.dispatch("GET_GENRES", this.$route.params.id);
+    await this.$store.dispatch("GET_MOVIE_GENRES", this.$route.params.id);
   }
 };
 </script>

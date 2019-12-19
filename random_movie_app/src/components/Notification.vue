@@ -6,7 +6,7 @@
         right
         :timeout="NOTIFICATION.timeout"
     >
-        <v-icon>notification_important</v-icon>
+        <v-icon dark>notification_important</v-icon>
         {{ NOTIFICATION.text }}
         <v-btn text dark @click.prevent="snackbar = false">
             <v-icon>clear</v-icon>

@@ -90,7 +90,10 @@ export default {
             }
         },
         uploadFile() {
-            console.log(this.imageFile)
+          let image = this.imageFile
+          this.$store.commit("SET_IMAGE", {
+            image
+          })
         }
     }
 }

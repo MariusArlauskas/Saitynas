@@ -9,7 +9,9 @@ import Login from './components/Auth/Login'
 import Signup from './components/Auth/Signup'
 import ToDo from './components/Todo'
 import Tasks from './components/GenresFolder/Tasks'
-import NotesModal from './components/NotesModal'
+import GenresModal from './components/GenresFolder/GenresModal'
+import GenreMovieInfoModal from './components/GenresFolder/GenreMovieInfoModal'
+// import NotesModal from './components/NotesModal'
 import MovieGenres from './components/MoviesFolder/MovieGenres'
 import MoviesModal from './components/MoviesFolder/MoviesModal'
 import MovieGenreInfoModal from './components/MoviesFolder/MovieGenreInfoModal'
@@ -29,46 +31,63 @@ const routes = [
     name: "todo",
     children: [
       {
-        path: 'genre/:id',
-        components: { tasks: Tasks },
-        name: "tasks",
+        path: 'genres/:id',
+        components: { genres: Tasks },
+        name: "genres",
         children: [
           {
-            path: 'movie/:taskId',
-            components: { notes: NotesModal },
-            name: "notes"
+            path: 'movie/:movieId',
+            components: { genreMovieInfoModal: GenreMovieInfoModal },
+            name: "genreMovieInfoModal"
+          },
+          {
+            path: '',
+            components: { genresEdit: GenresModal },
+            name: "genresEdit"
           }
         ]
       },
       {
         path: 'movie/:id',
-        components: {  movieGenres : MovieGenres },
+        components: { movieGenres: MovieGenres },
         name: "movieGenres",
         children: [
-          {
-            path: '',
-            components: { moviesEdit: MoviesModal },
-            name: "moviesEdit"
-          },
           {
             path: 'genre/:genreId',
             components: { movieGenreInfoModal: MovieGenreInfoModal },
             name: "movieGenreInfoModal"
+          },
+          {
+            path: '',
+            components: { moviesEdit: MoviesModal },
+            name: "moviesEdit"
           }
         ]
       },
       {
         path: 'user/:id',
-        components: {  userMovies : UserMovies },
+        components: { userMovies: UserMovies },
         name: "userMovies",
         children: [
           {
             path: 'movie/:movieId',
-            components: { notes: NotesModal },
-            name: "UserAndMovies"
+            components: { userMovieInfo: GenreMovieInfoModal },
+            name: "userMovieInfo"
           }
         ]
-      }
+      },
+      // {
+      //   path: 'myMovie/:id',
+      //   components: { myMovieGenres: MovieGenres },
+      //   name: "myMovieGenres",
+      //   children: [
+      //     {
+      //       path: 'genre/:genreId',
+      //       components: { movieGenreInfoModal: MovieGenreInfoModal },
+      //       name: "movieGenreInfoModal"
+      //     }
+      //   ]
+      // },
     ]
   },
   {
@@ -82,6 +101,64 @@ const routes = [
     name: "signup"
   }
 ];
+
+// let isRefreshing = false
+// let subscribers = []
+
+// axios.interceptors.response.use(response => {
+//   return response
+// }, err => {
+//   const {
+//     config,
+//     response: { status, data }
+//   } = err
+
+//   const originalRequest = config
+
+//   if (data.message == "Missing token"){
+//     router.push({ name: 'login' })
+//     return Promise.reject(false);
+//   }
+
+//   if (originalRequest.url.includes("login_check")){
+//     return Promise.reject(err)
+//   }
+
+//   if (status === 401) {
+//     if (!isRefreshing) {
+//       isRefreshing = true
+//       store.dispatch("REFRESH_TOKEN")
+//         .then(({ status }) => {
+//           if (status === 200 || status == 204) {
+//             isRefreshing = false
+//           }
+//           subscribers = []
+//         })
+//         .catch(error => {
+//           console.error(error)
+//         })
+//     }
+//     const requestSubscribers = new Promise((resolve) => {
+//       subscribeTokenRefresh(() => {
+//         resolve(axios(originalRequest))
+//       })
+//     })
+
+//     onRefreshed();
+
+//     return requestSubscribers
+//   }
+// })
+
+// function subscribeTokenRefresh(cb) {
+//   subscribers.push(cb)
+// }
+
+// function onRefreshed() {
+//   subscribers.map(cb => cb())
+// }
+
+// subscribers = []
 
 const router = new VueRouter({
   mode: 'history',

@@ -1,6 +1,6 @@
 <template>
-  <v-form>
-    <v-select
+  <v-form >
+    <v-select 
       label="Add genre"
       v-model="value"
       item-text="name"
@@ -8,7 +8,7 @@
       outlined
       attach
       v-on:change="addNewGenre()"
-      :items="LISTS_TITLES"
+      v-bind:items="LISTS_TITLES"
       :menu-props="{ top: true, offsetY: true }"
     ></v-select>
   </v-form>

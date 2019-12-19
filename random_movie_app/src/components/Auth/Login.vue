@@ -67,7 +67,19 @@ export default {
           password: this.password
         })
         .then(() => {
-          this.$router.push("/");
+          this.$store
+            .dispatch("SET_ROLE")
+            .then(() => {
+              this.$router.push("/");
+              this.$store.commit("SET_NOTIFICATION", {
+                display: true,
+                text: "Logged in!",
+                alertClass: "success"
+              });
+            })
+            .catch(() => {
+              this.error = true;
+            });
         })
         .catch(() => {
           this.error = true;

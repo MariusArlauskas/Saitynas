@@ -67,7 +67,14 @@ class GenreController extends AbstractController
         // Save movie
         $em->flush();
 
-        return new JsonResponse('Created new genre with id '.$genre->getId(), Response::HTTP_CREATED);
+        $data = [
+            'id' => $genre->getId(),
+            'name' => $genre->getName(),
+            'movies_count' => $genre->getGenreMoviesCount(),
+            'description' => $genre->getDescription()
+        ];
+
+        return new JsonResponse($data);
     }
 
     /**
@@ -87,6 +94,8 @@ class GenreController extends AbstractController
                 'id' => $item->getId(),
                 'name' => $item->getName(),
                 'movies_count' => $item->getGenreMoviesCount(),
+                'description' => $item->getDescription(),
+                'movies' => $item->getGenreMovies()
             ]);
         }
 
@@ -157,10 +166,10 @@ class GenreController extends AbstractController
         }
 
         // If new data empty leave old one
-        if (isset($name)){
+        if (!empty($name)){
             $genre->setName($name);
         }
-        if (isset($description)){
+        if (!empty($description)){
             $genre->setDescription($description);
         }
 

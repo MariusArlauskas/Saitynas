@@ -49,7 +49,9 @@ class GenreMoviesController extends AbstractController
                 'movie_id' => $item->getId(),
                 'likes_count' => $item->getMovieUsersCount(),
                 'name' => $item->getName(),
-                'genres' => $item->getMovieGenresString(),
+                'description' => $item->getDescription(),
+                'release_date' => $item->getReleaseDate()->format("Y-m-d"),
+                'author' => $item->getAuthor()
             ]);
         }
 

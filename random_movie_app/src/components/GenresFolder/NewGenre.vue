@@ -39,8 +39,13 @@ export default {
   }),
   methods: {
     submit() {
-      if (this.description === "") {
-        this.description = "No description";
+      if (this.valid() === false){
+        this.$store.commit("SET_NOTIFICATION", {
+          display: true,
+          text: "Genre needs at least a title!",
+          alertClass: "success"
+        });
+        return
       }
       this.$store.dispatch("POST_LIST", {
         name: this.name,
@@ -55,7 +60,7 @@ export default {
         this.name = '';
         this.description = "";
         this.$router.push({
-          name: 'tasks',
+          name: 'genres',
           params: {
             id: response.object.id
           }
@@ -69,6 +74,15 @@ export default {
     },
     mounted() {
       this.$refs.input.focus();
+    },
+    valid(){
+      if (this.name === ""){
+        return false
+      }
+      if (this.description === "") {
+        this.description = "No description";
+      }
+      return true
     }
   }
 };

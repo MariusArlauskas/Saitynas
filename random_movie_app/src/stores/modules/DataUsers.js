@@ -5,6 +5,11 @@ export default {
         users: []
     },
     getters: {
+        USER: state => index => {
+            if (index) {
+                return state.users.find(user => user.id === index);
+            }
+        },
         USERS: state => {
             return state.users;
         },
@@ -15,7 +20,7 @@ export default {
         },
         USER_MOVIES: state => index => {
             if (index) {
-                return state.users.find(user => user.id === index).tasks;
+                return state.users.find(user => user.id === index).movies;
             }
         }
     },
@@ -27,7 +32,15 @@ export default {
             state.users.push(payload);
         },
         SET_USER_MOVIES: (state, { data, userId }) => {
-            state.users.find(users => users.id === userId).tasks = data;
+            state.users.find(users => users.id === userId).movies = data;
+        },
+        REMOVE_USER_MOVIE_BY_INDEX: (state, { userId, movieId }) => {
+            state.users.find(user => user.id === userId).favorites_count = state.users.find(user => user.id === userId).favorites_count - 1
+            var removeIndex = state.users.find(user => user.id === userId)
+                .movies.map(function (item) { return item.genre_id; })
+                .indexOf(movieId);
+            state.users.find(user => user.id === userId)
+                .movies.splice(removeIndex, 1);
         }
     },
     actions: {
@@ -56,11 +69,32 @@ export default {
             })
         },
         GET_USER_MOVIES: async ({ commit }, payload) => {
-            let { data } = await axios.get(`users/${payload}/movies`);
-            commit("SET_USER_MOVIES", {
-                data,
-                userId: payload
-            });
+            try {
+                let { data } = await axios.get(`users/${payload}/movies`);
+                commit("SET_USER_MOVIES", {
+                    data,
+                    userId: payload
+                });
+            } catch (error) {
+                console.log("No movies!")
+            }
+        },
+        REMOVE_USER_MOVIE: async ({ commit }, { userId, movieId }) => {
+            return new Promise((resolve, reject) => {
+                axios.delete(`users/${userId}/movies/${movieId}`)
+                    .then(({ data, status }) => {
+                        commit("REMOVE_USER_MOVIE_BY_INDEX", {
+                            userId,
+                            movieId
+                        })
+                        if (status === 200) {
+                            resolve({ data, status })
+                        }
+                    })
+                    .catch(error => {
+                        reject(error);
+                    })
+            })
         }
     }
 };

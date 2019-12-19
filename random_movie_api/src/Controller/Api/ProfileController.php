@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * Class ProfileController
- * @package App\Controller
+ * @package App\Controller\Api
  * @Route("/api/profile")
  */
 class ProfileController extends AbstractController
@@ -37,6 +37,23 @@ class ProfileController extends AbstractController
             'email' => $user->getEmail(),
             'movies' => $user->getUserMoviesString(),
         ];
+
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/role", name="show_role", methods={"GET"})
+     * @return JsonResponse
+     */
+    public function getRoleAction()
+    {
+        if ($this->isGranted("ROLE_ADMIN")) {
+            $data = "ROLE_ADMIN";
+        }elseif ($this->isGranted("ROLE_USER")){
+            $data = "ROLE_USER";
+        }else {
+            $data = "ROLE_NONE";
+        }
 
         return new JsonResponse($data);
     }

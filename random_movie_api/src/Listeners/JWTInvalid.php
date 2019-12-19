@@ -26,7 +26,7 @@ class JWTInvalid extends AbstractController
     public function onJWTInvalid(JWTInvalidEvent $event)
     {
         if ($this->requestStack->getCurrentRequest()->cookies->get('BEARER') == "deleted") {
-            throw new HttpException(403, "Access denied!!");
+            throw new HttpException(403, "Access denied!-");
         }
     }
 }

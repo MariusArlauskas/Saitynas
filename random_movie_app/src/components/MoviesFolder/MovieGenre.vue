@@ -1,5 +1,5 @@
 <template>
-  <v-list-item ripple v-on:click.prevent="openInfoModal(index)">
+  <v-list-item ripple v-on:click.prevent="openInfoModal()">
     <v-list-item-action>
       <v-icon color="pink">description</v-icon>
     </v-list-item-action>
@@ -8,9 +8,8 @@
       <v-list-item-title>{{ movieGenre.name }}</v-list-item-title>
     </v-list-item-content>
 
-    <v-list-item-action-text></v-list-item-action-text>
     <v-btn icon>
-      <v-icon color="red" v-on:click.stop="removeGenre()">delete</v-icon>
+      <v-icon color="red" v-on:click.prevent="removeGenre()">delete</v-icon>
     </v-btn>
   </v-list-item>
 </template>
@@ -19,8 +18,7 @@
 export default {
   name: "movieGenre",
   props: {
-    movieGenre: Object,
-    index: Number
+    movieGenre: Object
   },
   data: () => ({}),
   methods: {

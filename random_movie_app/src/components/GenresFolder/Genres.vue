@@ -17,9 +17,24 @@
         </v-list-item>
       </v-list>
       <v-divider></v-divider>
-      <v-list style="height: calc(100% - 128px); overflow-y: scroll">
+      <v-list v-if="!openNewListFormValue" style="height: 87.3%; overflow-y: scroll">
         <v-list-item
-          :to="{ name: 'tasks', params: { id: list.id } }"
+          :to="{ name: 'genres', params: { id: list.id } }"
+          v-for="(list, key) in LISTS"
+          v-bind:key="key"
+        >
+          <v-list-item-content>
+            <v-list-item-title>{{ list.name }}</v-list-item-title>
+          </v-list-item-content>
+          <v-list-item-action>
+            <v-list-item-title>{{ list.movies_count }}</v-list-item-title>
+          </v-list-item-action>
+        </v-list-item>
+      </v-list>
+
+      <v-list v-if="openNewListFormValue" style="height: 69%; overflow-y: scroll">
+        <v-list-item
+          :to="{ name: 'genres', params: { id: list.id } }"
           v-for="(list, key) in LISTS"
           v-bind:key="key"
         >
@@ -39,11 +54,11 @@
 import NewGenre from "./NewGenre";
 import { mapGetters } from "vuex";
 export default {
-  name: "movies",
+  name: "genres",
   components: { NewGenre },
   data: () => ({}),
   computed: {
-    ...mapGetters(["DISPLAY_SEARCH_LIST", "LISTS"]),
+    ...mapGetters(["LISTS"]),
     openNewListFormValue: {
       get() {
         return this.$store.getters.NEW_LIST_FORM;
@@ -54,9 +69,6 @@ export default {
     }
   },
   methods: {
-    toggleSearchList() {
-      this.$store.commit("SET_DISPLAY_SEARCH_LIST", !this.DISPLAY_SEARCH_LIST);
-    },
     openNewListForm() {
       this.$store.commit("SET_NEW_LIST_FORM", true);
     },

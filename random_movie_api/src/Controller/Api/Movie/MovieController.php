@@ -83,7 +83,17 @@ class MovieController extends AbstractController
         // Save movie
         $em->flush();
 
-        return new JsonResponse('Saved new movie with id '.$movie->getId(), Response::HTTP_CREATED);
+        $data = [
+            'id' => $movie->getId(),
+            'likes_count' => $movie->getMovieUsersCount(),
+            'name' => $movie->getName(),
+            'release_date' => $movie->getReleaseDate()->format("Y-m-d"),
+            'genres' => $movie->getMovieGenres(),
+            'author' => $movie->getAuthor(),
+            'description' => $movie->getDescription()
+        ];
+
+        return new JsonResponse($data);
     }
 
     /**

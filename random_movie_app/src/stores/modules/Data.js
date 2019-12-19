@@ -18,11 +18,6 @@ export default {
             });
             return temp;
         },
-        LIST_TITLE: state => index => {
-            if (index) {
-                return state.lists.find(list => list.id === index)["name"];
-            }
-        },
         LIST: state => index => {
             if (index) {
                 return state.lists.find(list => list.id === index);
@@ -30,7 +25,7 @@ export default {
         },
         TASKS: state => index => {
             if (index) {
-                return state.lists.find(list => list.id === index).tasks;
+                return state.lists.find(list => list.id === index).movies;
             }
         }
     },
@@ -42,8 +37,13 @@ export default {
             state.lists.push(payload);
         },
         SET_TASKS: (state, { data, listId }) => {
-            state.lists.find(lists => lists.id === listId).tasks = data;
-        }
+            state.lists.find(lists => lists.id === listId).movies = data;
+        },
+        REMOVE_MOVIE_BY_INDEX: (state, payload) => {
+            var removeIndex = state.lists.map(function (item) { return item.id; })
+                .indexOf(payload);
+            state.lists.splice(removeIndex, 1);
+        },
     },
     actions: {
         GET_LISTS: async ({ commit }) => {
@@ -54,15 +54,37 @@ export default {
             return new Promise((resolve, reject) => {
                 axios.post(`genres`, payload)
                     .then(({ data, status }) => {
-                        let object = {
-                            name: payload["name"],
-                            description: "500",
-                            id: data.split(" ")[data.split(" ").length - 1],
-                            movies_count: "0"
+                        commit("ADD_LIST", data)
+                        if (status === 200) {
+                            resolve({ data, status })
                         }
-                        commit("ADD_LIST", object)
-                        if (status === 201) {
-                            resolve({ object, status })
+                    })
+                    .catch(error => {
+                        reject(error);
+                    })
+            })
+        },
+        UPDATE_GENRE: ({ commit }, payload) => {
+            return new Promise((resolve, reject) => {
+                axios.put(`genres/${payload.id}`, payload)
+                    .then(({ data, status }) => {
+                        if (commit && (true == false)) { return }
+                        if (status === 200) {
+                            resolve({ data, status })
+                        }
+                    })
+                    .catch(error => {
+                        reject(error);
+                    })
+            })
+        },
+        DELETE_GENRE: ({ commit }, payload) => {
+            return new Promise((resolve, reject) => {
+                axios.delete(`genres/${payload.genreId}`)
+                    .then(({ data, status }) => {
+                        commit("REMOVE_GENRE_BY_INDEX", payload.genreId)
+                        if (status === 200) {
+                            resolve({ data, status })
                         }
                     })
                     .catch(error => {
@@ -71,11 +93,15 @@ export default {
             })
         },
         GET_TASKS: async ({ commit }, payload) => {
-            let { data } = await axios.get(`genres/${payload}/movies`);
-            commit("SET_TASKS", {
-                data,
-                listId: payload
-            });
+            try {
+                let { data } = await axios.get(`genres/${payload}/movies`);
+                commit("SET_TASKS", {
+                    data,
+                    listId: payload
+                });
+            } catch (error) {
+                console.log("No movies!")
+            }
         }
     }
 };

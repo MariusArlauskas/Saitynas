@@ -8,13 +8,25 @@
       <v-list>
         <v-list-item @click.prevent="displayNotification()">
           <v-list-item-content>
-            <v-list-item-title class="danger">Change username</v-list-item-title>
+            <v-list-item-title>Change username</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
 
         <v-list-item @click.prevent="openDrawer()">
           <v-list-item-content>
-            <v-list-item-title class="danger">Open profile</v-list-item-title>
+            <v-list-item-title>Open profile</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item @click.prevent="login()">
+          <v-list-item-content>
+            <v-list-item-title>Login</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-list-item @click.prevent="logout()">
+          <v-list-item-content>
+            <v-list-item-title>Logout</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -24,7 +36,7 @@
 </template>
 
 <script>
-import MoreOptions from "./MoreOptions";
+import MoreOptions from "../MoreOptions";
 export default {
   name: "optionsBar",
   components: { MoreOptions },
@@ -84,6 +96,24 @@ export default {
         timeout: 3000,
         text: "Username changed! (not implemented)"
       });
+    },
+    logout() {
+      this.$store.dispatch("LOGOUT").then(() => {
+        this.$store.commit("SET_NOTIFICATION", {
+          display: true,
+          text: "Logged out!",
+          alertClass: "red"
+        });
+
+        this.$router.push({
+          name: "login"
+        });
+      });
+    },
+    login() {
+        this.$router.push({
+          name: "login"
+        });
     }
   }
 };
